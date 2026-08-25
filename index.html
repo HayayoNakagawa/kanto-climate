@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="utf-8">
+    <title>関東の大雨傾向は、地域と時期によって異なる</title>
+    <meta name="description" content="1991年から2020年の平年値から、関東の月別降水量と大雨傾向を比較する可視化">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+
+<body class="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(14,165,233,0.16),_transparent_32%),linear-gradient(180deg,_#f8fafc_0%,_#e2e8f0_100%)] text-slate-900 antialiased">
+    <main class="mx-auto flex max-w-6xl flex-col px-4 py-8 sm:px-6 lg:px-8">
+        <section class="rounded-[2rem] bg-slate-950 px-6 py-9 text-white shadow-card sm:px-10">
+            <p class="text-xs font-semibold uppercase tracking-[0.28em] text-cyan-300">
+                Kanto climate / rainfall watch
+            </p>
+            <h1 class="mt-3 max-w-3xl text-3xl font-semibold tracking-tight sm:text-5xl">
+                関東の大雨傾向は、地域と時期によって異なる
+            </h1>
+            <p class="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">
+                1991〜2020年の平年値を比較し、関東の地域・時期による大雨傾向の違いを示します。
+            </p>
+        </section>
+
+        <section id="controlsSection" class="mt-6 rounded-[2rem] bg-white/95 px-6 py-5 shadow-card ring-1 ring-slate-200">
+            <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-700">Explore</p>
+                    <p class="text-sm text-slate-500">条件を選ぶと、すべての表示が連動します。</p>
+                </div>
+                <div id="selectionSummary" class="text-right text-sm font-semibold text-cyan-700"></div>
+            </div>
+            <div class="mx-auto flex max-w-5xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-center sm:gap-6">
+                <label class="flex flex-col gap-1 text-sm font-semibold text-slate-700">表示指標
+                    <div id="variableSelector"></div>
+                </label>
+                <label class="flex flex-col gap-1 text-sm font-semibold text-slate-700">地域
+                    <div id="regionSelector"></div>
+                </label>
+                <label class="flex flex-col gap-1 text-sm font-semibold text-slate-700">月
+                    <div id="monthSelector"></div>
+                </label>
+                <label class="flex flex-col gap-1 text-sm font-semibold text-slate-700">表示形式
+                    <div id="viewSelector"></div>
+                </label>
+            </div>
+        </section>
+
+        <nav id="chartTabs" class="mt-6 flex gap-1 rounded-xl bg-slate-200/70 p-1" aria-label="グラフ表示の切り替え">
+            <button class="chart-tab is-active" data-chart-tab="map">地図・横棒</button>
+            <button class="chart-tab" data-chart-tab="relationship">気温・大雨の関係</button>
+        </nav>
+
+        <section id="mapSection" class="mt-4 rounded-[2rem] bg-white/95 p-4 shadow-card ring-1 ring-slate-200 sm:p-6">
+            <div class="mb-5 flex flex-col gap-3 border-b border-slate-200 pb-5 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-700">Monthly pattern</p>
+                    <h2 class="mt-1 text-xl font-semibold text-slate-900">関東の地図で見る大雨傾向</h2>
+                    <p id="chartDescription" class="mt-1 text-sm text-slate-500"></p>
+                </div>
+                <div id="summary" class="text-left sm:text-right"></div>
+            </div>
+            <div id="viewportContainer" class="relative overflow-hidden rounded-[1.5rem] bg-white"></div>
+            <div id="legend" class="mt-4"></div>
+            <p id="insight" class="mt-4 border-l-4 border-cyan-500 bg-cyan-50 px-4 py-3 text-sm leading-6 text-slate-700"></p>
+            <p class="mt-4 text-xs leading-5 text-slate-400">※ 地図上の位置はCSVの緯度・経度を使用しています。10・30・50・100mm以上は日降水量の異なる閾値です。気象庁の警報基準ではなく、1991〜2020年の平年値による比較です。この作品では将来予測や年ごとの増減は扱っていません。</p>
+        </section>
+
+        <section id="relationshipSection" class="mt-4 hidden rounded-[2rem] bg-white/95 p-4 shadow-card ring-1 ring-slate-200 sm:p-6">
+            <div class="mb-5 border-b border-slate-200 pb-5">
+                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-700">Temperature × rainfall</p>
+                <h2 class="mt-1 text-xl font-semibold text-slate-900">気温と大雨傾向の関係</h2>
+                <p id="relationshipDescription" class="mt-1 text-sm text-slate-500"></p>
+            </div>
+            <div id="relationshipChart" class="overflow-hidden rounded-[1.5rem] bg-white"></div>
+            <div id="relationshipLegend" class="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs text-slate-600"></div>
+            <div class="mt-5 overflow-x-auto rounded-xl border border-slate-200">
+                <table class="min-w-full text-left text-sm text-slate-600">
+                    <caption class="border-b border-slate-200 bg-slate-50 px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">選択条件の詳細データ</caption>
+                    <thead class="bg-slate-50 text-xs text-slate-500">
+                        <tr>
+                            <th class="px-4 py-2 font-semibold">地域</th>
+                            <th class="px-4 py-2 font-semibold">月</th>
+                            <th class="px-4 py-2 font-semibold">平均気温</th>
+                            <th class="px-4 py-2 font-semibold">平均相対湿度</th>
+                            <th class="px-4 py-2 font-semibold">大雨指標</th>
+                        </tr>
+                    </thead>
+                    <tbody id="relationshipTableBody" class="divide-y divide-slate-100 bg-white"></tbody>
+                </table>
+            </div>
+            <p class="mt-4 text-xs leading-5 text-slate-400">関東全域では選択月の各地点、地域を選ぶとその地域の12か月を点で表します。横軸は気温、縦軸は大雨日数、点の大きさは平均相対湿度、色は都県です。これは地域差・季節差の比較であり、気温や湿度が大雨の原因であることを示すものではありません。</p>
+        </section>
+
+        <details class="mt-6 rounded-[2rem] bg-white/95 px-6 py-5 shadow-card ring-1 ring-slate-200">
+            <summary class="cursor-pointer text-base font-semibold text-slate-900">データと表現の設計</summary>
+            <div class="mt-4 grid gap-5 text-sm leading-6 text-slate-600 sm:grid-cols-2">
+                <div>
+                    <h3 class="font-semibold text-slate-800">出典・対象</h3>
+                    <p>SSDSE-F-2023v3（SSDSE-気候値）／提供：独立行政法人統計センター</p>
+                    <p>元データ：気象庁「地上気象観測統計」2020年平年値（第4.0.1版）</p>
+                    <p>取得日：2026年8月24日</p>
+                    <a class="text-cyan-700 underline" href="https://www.nstac.go.jp/use/literacy/ssdse/" rel="noreferrer">公式データページ</a>
+                    <p class="mt-2">地図：dataofjapan/land GeoJSON／取得日：2026年8月24日</p>
+                    <a class="text-cyan-700 underline" href="https://github.com/dataofjapan/land/blob/master/japan.geojson" rel="noreferrer">地図データのページ</a>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-slate-800">処理・視覚変数</h3>
+                    <p>関東7都県の月別データだけを抽出し、空欄は確認されなかったため補完・除外していません。日降水量は10・30・50・100mm以上の閾値を選べるようにしています。</p>
+                    <p>極端な降水量も大雨傾向を示す重要な値として、外れ値扱いで除去していません。</p>
+                    <p>緯度・経度は地図上の位置、棒の高さは大雨日数、棒の色は値の大小を示します。散布図では横軸に平均気温、縦軸に大雨日数、点の大きさに平均相対湿度、点の色に都県を割り当てています。県の色は地域を変えても固定し、同じ県を追跡できるようにしています。地図は位置関係を読む図なので、数値軸は置かず、単位と凡例で値を示しています。日数は1日を24時間として換算し、元の日数も併記しています。</p>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-slate-800">構成形式と動線</h3>
+                    <p>初期状態で9月の最大地点と解釈文を示す説明型を基本にし、月・指標・地域を選択して比較できる探索型を組み合わせました。</p>
+                    <p>関東全域では選択月の7地点を比較し、個別地域を選ぶと散布図がその地域の12か月表示に切り替わります。点の横に月を表示し、選択中の月を強調することで、地域比較と季節比較の動線を分けています。</p>
+                    <p>地図は位置関係、横棒グラフは値の順位と差を読むための表示形式として切り替えられるようにしました。散布図は地図や横棒グラフとは役割を分け、平均気温・湿度・大雨傾向の関係を確認するために追加しています。</p>
+                </div>
+            </div>
+        </details>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.25.6/d3-legend.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
+    <script src="js/main.js"></script>
+</body>
+
+</html>
