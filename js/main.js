@@ -88,10 +88,32 @@ function render(data, mapData) {
 }
 
 d3.selectAll("[data-chart-tab]").on("click", function () {
-	const selectedTab = this.dataset.chartTab;
-	d3.selectAll("[data-chart-tab]").classed("is-active", (_, index, nodes) => nodes[index].dataset.chartTab === selectedTab);
-	d3.select("#mapSection").classed("hidden", selectedTab !== "map");
-	d3.select("#relationshipSection").classed("hidden", selectedTab !== "relationship");
+    const selectedTab = this.dataset.chartTab;
+
+    // タブの見た目を変更
+    d3.selectAll("[data-chart-tab]").classed(
+        "is-active",
+        (_, index, nodes) =>
+            nodes[index].dataset.chartTab === selectedTab
+    );
+
+    // 表示するセクションを切り替える
+    d3.select("#mapSection").classed(
+        "hidden",
+        selectedTab !== "map"
+    );
+
+    d3.select("#relationshipSection").classed(
+        "hidden",
+        selectedTab !== "relationship"
+    );
+
+    // 地図・横棒グラフの場合は
+    // chartState.view を変更して再描画
+    if (selectedTab === "map" || selectedTab === "bars") {
+        chartState.view = selectedTab;
+        render(data, mapData);
+    }
 });
 
 function renderBarChart(data, selectedMonthData, metric) {
@@ -169,12 +191,84 @@ function renderRelationship(data, metric) {
 }
 
 Promise.all([d3.text(DATA_PATH), d3.json(MAP_PATH)]).then(([csvText, mapData]) => {
-	const data = parseCsv(csvText);
-	createSelect("variableSelector", METRICS.map(metric => ({ value: metric.key, label: metric.label })), chartState.metric, value => { chartState.metric = value; render(data, mapData); });
-	createSelect("regionSelector", [{ value: "すべて", label: "関東全域" }, ...KANTO_PREFECTURES.map(prefecture => ({ value: prefecture, label: prefecture }))], chartState.prefecture, value => { chartState.prefecture = value; render(data, mapData); });
-	createSelect("monthSelector", MONTHS.map(month => ({ value: month, label: month })), chartState.month, value => { chartState.month = value; render(data, mapData); });
-	createSelect("viewSelector", [{ value: "map", label: "地図" }, { value: "bars", label: "横棒グラフ" }], chartState.view, value => { chartState.view = value; render(data, mapData); });
-	render(data, mapData);
+    const data = parseCsv(csvText);
+
+    createSelect(
+        "variableSelector",
+        METRICS.map(metric => ({
+            value: metric.key,
+            label: metric.label
+        })),
+        chartState.metric,
+        value => {
+            chartState.metric = value;
+            render(data, mapData);
+        }
+    );
+
+    createSelect(
+        "regionSelector",
+        [
+            { value: "すべて", label: "関東全域" },
+            ...KANTO_PREFECTURES.map(prefecture => ({
+                value: prefecture,
+                label: prefecture
+            }))
+        ],
+        chartState.prefecture,
+        value => {
+            chartState.prefecture = value;
+            render(data, mapData);
+        }
+    );
+
+    createSelect(
+        "monthSelector",
+        MONTHS.map(month => ({
+            value: month,
+            label: month
+        })),
+        chartState.month,
+        value => {
+            chartState.month = value;
+            render(data, mapData);
+        }
+    );
+
+    // タブ切り替え
+    d3.selectAll("[data-chart-tab]").on("click", function () {
+        const selectedTab = this.dataset.chartTab;
+
+        // タブの選択状態
+        d3.selectAll("[data-chart-tab]")
+            .classed("is-active", function () {
+                return this.dataset.chartTab === selectedTab;
+            });
+
+        // 気温・大雨の関係
+        d3.select("#relationshipSection")
+            .classed("hidden", selectedTab !== "relationship");
+
+        // 地図・横棒グラフ
+        d3.select("#mapSection")
+            .classed(
+                "hidden",
+                selectedTab === "relationship"
+            );
+
+        // 地図または横棒グラフを選択
+        if (selectedTab === "map" || selectedTab === "bars") {
+            chartState.view = selectedTab;
+            render(data, mapData);
+        }
+    });
+
+    render(data, mapData);
+
 }).catch(error => {
-	d3.select("#viewportContainer").html(`<p class="p-8 text-sm text-red-700">データまたは地図を読み込めませんでした: ${error.message}</p>`);
+    d3.select("#viewportContainer").html(
+        `<p class="p-8 text-sm text-red-700">
+            データまたは地図を読み込めませんでした: ${error.message}
+        </p>`
+    );
 });

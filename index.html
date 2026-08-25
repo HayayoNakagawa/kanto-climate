@@ -24,6 +24,23 @@
             </p>
         </section>
 
+        
+
+        <nav id="chartTabs"
+            class="mt-6 flex gap-1 rounded-xl bg-slate-200/70 p-1"
+            aria-label="グラフ表示の切り替え">
+            <button class="chart-tab is-active" data-chart-tab="map">
+                地図
+            </button>
+            <button class="chart-tab" data-chart-tab="bars">
+                横棒グラフ
+            </button>
+            <button class="chart-tab" data-chart-tab="relationship">
+                気温・大雨の関係
+            </button>
+        </nav>
+
+
         <section id="controlsSection" class="mt-6 rounded-[2rem] bg-white/95 px-6 py-5 shadow-card ring-1 ring-slate-200">
             <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
                 <div>
@@ -42,16 +59,8 @@
                 <label class="flex flex-col gap-1 text-sm font-semibold text-slate-700">月
                     <div id="monthSelector"></div>
                 </label>
-                <label class="flex flex-col gap-1 text-sm font-semibold text-slate-700">表示形式
-                    <div id="viewSelector"></div>
-                </label>
             </div>
         </section>
-
-        <nav id="chartTabs" class="mt-6 flex gap-1 rounded-xl bg-slate-200/70 p-1" aria-label="グラフ表示の切り替え">
-            <button class="chart-tab is-active" data-chart-tab="map">地図・横棒</button>
-            <button class="chart-tab" data-chart-tab="relationship">気温・大雨の関係</button>
-        </nav>
 
         <section id="mapSection" class="mt-4 rounded-[2rem] bg-white/95 p-4 shadow-card ring-1 ring-slate-200 sm:p-6">
             <div class="mb-5 flex flex-col gap-3 border-b border-slate-200 pb-5 sm:flex-row sm:items-end sm:justify-between">
